@@ -1,0 +1,166 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <math.h>
+
+using namespace std;
+
+struct Point
+{
+    public:
+
+    int x,y;
+    Point(int x,int y);
+    double distance( const Point &P);
+    double distance_h(const Point &P);
+    double distance_v(const Point &P);
+    bool isBetween_h(const Point &A, const Point &B);
+    bool isBetween_h(int x, int y);
+    Point closest_h(const Point &A, const Point &B);
+
+};
+Point::Point(int x, int y){
+    this->x = x;
+    this->y = y;
+}
+double Point::distance(const Point &P){
+    return sqrt(pow(this->x - P.x,2)+pow(this->y - P.y,2));
+}
+double Point::distance_h(const Point &P){
+    return(P.x - this->x);
+}
+
+double Point::distance_v(const Point &P){
+    return(P.y - this->y);
+}
+
+Point Point::closest_h(const Point&A, const Point&B){
+    if (abs(distance_h(A)) < abs(distance_h(B))){
+        return A;
+    }
+    return B;
+
+}
+bool Point::isBetween_h(const Point&A, const Point&B){
+
+      return (this->x > A.x && this->x < B.x) ||
+         (this->x > B.x && this->x < A.x);
+}
+
+bool Point::isBetween_h(int x, int y){
+    return (this->x > x && this->x < y) ||
+         (this->x > y && this->x < x);
+}
+
+
+/**
+ * Auto-generated code below aims at helping you parse
+ * the standard input according to the problem statement.
+ **/
+
+int main()
+{
+    
+    std::vector<Point> points;
+    int surface_n; // the number of points used to draw the surface of Mars.
+    cin >> surface_n; cin.ignore();
+    for (int i = 0; i < surface_n; i++) 
+    {
+        int land_x; // X coordinate of a surface point. (0 to 6999)
+        int land_y; // Y coordinate of a surface point. By linking all the points together in a sequential fashion, you form the surface of Mars.
+        cin >> land_x >> land_y; cin.ignore();
+        cerr << land_y << endl;
+        points.push_back({land_x,land_y});
+    }
+
+    for (const auto& p : points)
+    {
+        cerr << "(" << p.x << ", " << p.y << ")" << endl;
+    }
+
+
+
+    // code pour trouver un terrain plat. 
+    // parcourir le vector de surface et faut deux points d'affiler avec meme y 
+    int indice_plat;
+    int taille;
+    int hauteur;
+    for (int i = 0; i < surface_n - 1; i++)
+    {
+        if (points[i+1].y == points[i].y)
+        {
+            indice_plat = i;
+
+            taille = points[i].distance_h(points[i+1]);
+            hauteur = points[i].y;
+            cerr << "indice i  = " << i << "ordonnée x_i " << points[i].y << endl;
+        }
+    }
+
+    std::vector<Point> safe_zone_2;
+    std::vector<Point> safe_zone;
+
+    //Safe_zone 2 est la zone delimité par les deux points
+    //safe_zone c'est la taille horizontale et la hauteur
+    safe_zone_2.push_back(points[indice_plat]);
+    safe_zone_2.push_back(points[indice_plat + 1]);
+
+    // game loop
+    while (1) {
+        int x;
+        int y;
+
+        // pour la direction droite = -1, gauche = 1 plus utile que un boolean pour determiner rotate plus tard.
+        int direction;
+
+
+
+        int h_speed; // the horizontal speed (in m/s), can be negative.
+        int v_speed; // the vertical speed (in m/s), can be negative.
+        int fuel; // the quantity of remaining fuel in liters.
+        int rotate; // the rotation angle in degrees (-90 to 90).
+        int power; // the thrust power (0 to 4).
+        int mid_h; // Mid of the landing spot 
+        cin >> x >> y >> h_speed >> v_speed >> fuel >> rotate >> power; cin.ignore();
+        mid_h = (safe_zone_2[0].x + safe_zone_2[1].x)/2;
+        Point *position = new Point(x,y);
+        Point proche = position->closest_h(safe_zone_2[0],safe_zone_2[1]);
+        Point *objectif = new Point(mid_h,safe_zone_2[0].y);
+        power = 3;
+        if (position->x < objectif->x){
+            direction = -1;
+        }
+        else if (position->x > objectif->x){
+            direction = 1;
+        }
+        cerr << "direction " << direction << endl;
+        // Write an action using cout. DON'T FORGET THE "<< endl"
+        // To debug: cerr << "Debug messages..." << endl;
+        if (abs(h_speed) > 20 && position->isBetween_h(objectif->x - 10, objectif->x +10)){
+            cerr << " on rentre la ? " << endl;
+            rotate = -direction * 45;
+            cerr << rotate << endl;
+        }
+        else if (position->isBetween_h(objectif->x - 10, objectif->x +10)){
+            rotate = 0;
+            power = 0;
+        }
+        else {
+            cerr << "on rentre ici ? " << endl;
+            rotate = 45 * direction;
+            cerr << rotate << endl;
+        }
+        if (((h_speed > 20 && direction == -1) || (h_speed < -20 && direction == 1)) && !position->isBetween_h(objectif->x - 10, objectif->x +10)
+        || abs(h_speed) > 50){
+            rotate = -1* rotate;
+            cerr << rotate << endl;
+        }
+
+        if (v_speed < -38){
+            power = 4;
+        }
+        // 2 integers: rotate power. rotate is the desired rotation angle (should be 0 for level 1), power is the desired thrust power (0 to 4).
+        cout << rotate <<" " << power<< endl;
+    }
+}
